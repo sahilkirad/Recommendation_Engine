@@ -1,0 +1,8 @@
+fastapi[all]
+uvicorn
+python-dotenv
+redis
+langgraph
+langchain
+langchain-cohere
+passlib[bcrypt]
