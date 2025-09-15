@@ -25,3 +25,21 @@ class RecommendationRequest(BaseModel):
     Defines the structure for a recommendation request.
     """
     visitor_id: str
+
+class UserCreate(BaseModel):
+    """Schema for creating a new user."""
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    """Schema for returning user information (without the password)."""
+    id: int
+    email: str
+
+    class Config:
+        orm_mode = True # This allows the model to be created from a database object
+
+class Token(BaseModel):
+    """Schema for the JWT access token."""
+    access_token: str
+    token_type: str

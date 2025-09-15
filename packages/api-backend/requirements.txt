@@ -6,3 +6,4 @@ langgraph
 langchain
 langchain-cohere
 passlib[bcrypt]
+python-jose[cryptography]

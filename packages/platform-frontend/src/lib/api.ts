@@ -11,7 +11,19 @@ const apiClient = axios.create({
   },
 });
 
-// In the future, we can add interceptors here to automatically
-// handle things like adding authentication tokens to every request.
+// This is an "interceptor" that runs before every request is sent.
+apiClient.interceptors.request.use((config) => {
+  // Check if we are running in the browser
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      // If a token exists, add it to the Authorization header
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 export default apiClient;

@@ -1,7 +1,10 @@
 // File: packages/platform-frontend/src/components/layout/DashboardLayout.tsx
-import React from 'react';
-import { LayoutDashboard, Book, GanttChartSquare, Settings } from 'lucide-react';
+'use client'; // Add this because we need interactivity for logout
 
+import React from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
+import { LayoutDashboard, Book, GanttChartSquare, Settings, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 // This is a simple data structure for our navigation links.
 // In a real app, this might be more complex.
 const navLinks = [
@@ -12,6 +15,12 @@ const navLinks = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    router.push('/login');
+  };
   return (
     <div className="flex min-h-screen w-full bg-background">
       <aside className="hidden w-64 flex-col border-r bg-muted/40 p-4 sm:flex">
@@ -30,6 +39,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </a>
           ))}
         </nav>
+        <div className="mt-auto">
+          <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </aside>
       <main className="flex-1 p-8">
         {children}

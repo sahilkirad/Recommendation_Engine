@@ -1,23 +1,66 @@
 // File: packages/platform-frontend/src/components/dashboard/ApiKeyDisplay.tsx
-'use client'; // This is a client component because it uses state and interactivity
+'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Import useEffect
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, ClipboardCopy, Check } from 'lucide-react';
+import { Eye, EyeOff, ClipboardCopy, Check, Loader2 } from 'lucide-react';
+import apiClient from '@/lib/api'; // Our API client
 
 export default function ApiKeyDisplay() {
-  const apiKey = 'pk_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6'; // This will be dynamic later
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [isRevealed, setIsRevealed] = useState(false);
   const [hasCopied, setHasCopied] = useState(false);
+  
+  // This effect runs once when the component mounts
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await apiClient.get('/api/v1/api-key');
+        setApiKey(response.data);
+      } catch (err) {
+        setError('Failed to fetch API key.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchApiKey();
+  }, []); // The empty array means this runs only once
 
-  const maskedKey = `pk_live_...${apiKey.slice(-4)}`;
+  const maskedKey = apiKey ? `nexus_live_...${apiKey.slice(-4)}` : '';
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(apiKey);
-    setHasCopied(true);
-    setTimeout(() => setHasCopied(false), 2000); // Reset after 2 seconds
+    if (apiKey) {
+      navigator.clipboard.writeText(apiKey);
+      setHasCopied(true);
+      setTimeout(() => setHasCopied(false), 2000);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader><CardTitle>Your API Key</CardTitle></CardHeader>
+        <CardContent className="flex items-center justify-center h-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !apiKey) {
+    return (
+      <Card>
+        <CardHeader><CardTitle>Error</CardTitle></CardHeader>
+        <CardContent>
+          <p className="text-red-500">{error || 'Could not load API key.'}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

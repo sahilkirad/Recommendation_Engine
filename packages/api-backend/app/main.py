@@ -11,8 +11,9 @@ import app.core.config
 # --- 3. Import all necessary modules ---
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from app.api.endpoints import track, recommend
+from app.api.endpoints import track, recommend,auth, api_key
 from app.db.session import get_db_engine
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- 4. Define the Lifespan event manager ---
 @asynccontextmanager
@@ -41,11 +42,21 @@ app = FastAPI(
     description="The core reasoning and recommendation engine for NexusAI.",
     lifespan=lifespan  # <-- This is the crucial line that registers the lifespan
 )
-
+origins = [
+    "http://localhost:3000", # The address of our Next.js frontend
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"], # Allows all headers
+)
 # --- 6. Include the API routers ---
 app.include_router(track.router, prefix="/api/v1")
 app.include_router(recommend.router, prefix="/api/v1")
-
+app.include_router(auth.router, prefix="/api/v1") # Add this line
+app.include_router(api_key.router, prefix="/api/v1")
 # --- 7. Define the root endpoint ---
 @app.get("/")
 def read_root():

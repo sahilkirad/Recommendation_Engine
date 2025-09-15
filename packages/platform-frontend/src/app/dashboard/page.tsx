@@ -1,10 +1,11 @@
 // File: packages/platform-frontend/src/app/dashboard/page.tsx
+'use client'; // HOCs that use hooks need to be in a client component
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ApiKeyDisplay from "@/components/dashboard/ApiKeyDisplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-
-export default function DashboardPage() {
+import withAuth from "@/components/auth/withAuth"; // Import our new HOC
+function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
@@ -74,3 +75,7 @@ export default function DashboardPage() {
     </DashboardLayout>
   );
 }
+
+
+// Wrap the component with the HOC before exporting
+export default withAuth(DashboardPage);
