@@ -1,19 +1,19 @@
 import os
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_cohere import ChatCohere # IMPORT THIS
-
+from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
-MODEL_NAME = os.environ.get("MODEL_NAME", "command-r")
+MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-2.0-flash")
 print(f"✅ Using Model: {MODEL_NAME}")
 
 # --- Initialize the LLM ---
 # We now use the client for Cohere
-llm = ChatCohere(
+llm = ChatGoogleGenerativeAI(
     model=MODEL_NAME,
-    cohere_api_key=os.environ.get("COHERE_API_KEY"),
-    temperature=0.1
+    google_api_key=os.environ.get("GOOGLE_API_KEY"),
+    temperature=0.1,
+    convert_system_message_to_human=True
 )
 
 

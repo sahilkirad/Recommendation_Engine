@@ -37,12 +37,16 @@ async def get_recommendations(request: RecommendationRequest):
     print(f"DEBUG: Raw AI Response:\n{ai_response_content}") # Add this for debugging
 
     try:
-        # Try to parse the JSON
-        recommendations = json.loads(ai_response_content)
+        # --- ADD THIS CLEANING LOGIC ---
+        cleaned_content = ai_response_content.strip()
+        if cleaned_content.startswith("```json"):
+            cleaned_content = cleaned_content[7:-4]
+        # ---------------------------------
+            
+        recommendations = json.loads(cleaned_content)
+
     except json.JSONDecodeError:
-        # If it fails, raise a proper HTTP error
         print("ERROR: AI response was not valid JSON.")
         raise HTTPException(status_code=500, detail="AI failed to generate a valid JSON response.")
-
     print("✅ AI Agent generated recommendations.")
     return recommendations

@@ -6,4 +6,7 @@ langgraph
 langchain
 langchain-cohere
 passlib[bcrypt]
+sqlalchemy
+psycopg2-binary
 python-jose[cryptography]
+langchain-google-genai
