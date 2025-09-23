@@ -20,7 +20,7 @@ llm = ChatGoogleGenerativeAI(
 # --- Define the Prompt Template ---
 # This is the instruction manual for our AI agent.
 # It's a dynamic template that will be filled with real user data.
-# File: packages/api-backend/app/core/agent_core.py
+
 
 # ... (imports and llm initialization are the same)
 
@@ -30,49 +30,39 @@ llm = ChatGoogleGenerativeAI(
 
 recommendation_prompt = ChatPromptTemplate.from_messages([
     ("system", """
-You are a hyper-efficient, machine-like JSON API. Your sole purpose is to return personalized product recommendations.
+You are a world-class e-commerce stylist and data scientist. Your goal is to provide insightful recommendations that strictly follow all business rules.
+
+**THOUGHT PROCESS:**
+1.  First, analyze the **Active Business Rules**. These are the most important instructions and take top priority.
+2.  Next, analyze the user's session history to understand their interests.
+3.  Brainstorm recommendations that satisfy BOTH the user's interest AND the business rules.
+4.  Select the best 3-4 recommendations and write a compelling reason for each.
+5.  Generate a dynamic headline for the recommendation set.
 
 **RULES:**
-1. Your entire response MUST be a single, minified JSON object.
-2. Do NOT include any introductory text, closing text, explanations, or markdown formatting like ```json.
-3. The JSON object must strictly adhere to the format specified below.
-4. The "reason" should be a concise, compelling sentence.
-5. If the user's history is irrelevant or you cannot make at least one good recommendation based on the catalog, you MUST return an empty list: {{"recommendations": []}}.
+1.  Your FINAL response MUST be a single, minified JSON object.
+2.  You MUST strictly follow and prioritize the **Active Business Rules** provided.
+3.  Do NOT include your thought process or any text outside of the final JSON object.
+4.  If you cannot make a good recommendation, return an empty list: {{"headline": "Fresh Finds For You", "recommendations": []}}.
 
 **OUTPUT FORMAT:**
-{{"recommendations": [{{"item_id": "PRODUCT_ID", "reason": "A concise reason."}}]}}
+{{"headline": "Your dynamic headline here.", "recommendations": [{{"item_id": "PRODUCT_ID", "reason": "A concise, insightful reason."}}]}}
 """),
     ("human", """
----
-**EXAMPLE START**
+        **Active Business Rules:**
+        {business_rules}
 
-**User History:**
-{{"visitor_id":"vis-user-789","event":"view_product","data":{{"product_id":"SHOE-045"}}}}
+        **User History:**
+        {session_history}
 
-**Product Catalog:**
-[{{"item_id": "SHOE-045", "name": "Classic Leather Sneakers"}}, {{"item_id": "PANT-002", "name": "Slim Fit Chinos"}}, {{"item_id": "SOCK-001", "name": "Ankle Socks (3-Pack)"}}]
+        **Product Catalog:**
+        {product_catalog}
 
-**Expected JSON Output:**
-{{"recommendations": [{{"item_id": "PANT-002", "reason": "These Slim Fit Chinos are a popular choice to pair with classic sneakers."}}, {{"item_id": "SOCK-001", "reason": "Complete your look with these comfortable ankle socks."}}]}}
-
-**EXAMPLE END**
----
-**TASK START**
-
-**User History:**
-{session_history}
-
-**Product Catalog:**
-{product_catalog}
-
-**TASK END**
----
-Please generate the JSON output for the above task now.
+        Please generate the JSON output now, strictly following the business rules.
     """)
 ])
 
 # ... (the rest of the file is the same)
-
 
 # Combine the prompt and the LLM into a runnable chain
 # This is the "brain" that our LangGraph agent will use.

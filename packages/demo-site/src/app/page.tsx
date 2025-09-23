@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 export default function HomePage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [headline, setHeadline] = useState("Recommended For You"); // Add state for the headline
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,6 +23,7 @@ export default function HomePage() {
       const response = await apiClient.post('/api/v1/recommend', { visitor_id: visitorId });
       
       if (response.data.recommendations && response.data.recommendations.length > 0) {
+         setHeadline(response.data.headline || "Recommended For You"); // Set the dynamic headline
           const recommendedProducts = response.data.recommendations.map((rec: any) => ({
             id: rec.item_id,
             name: rec.item_id.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
@@ -30,6 +32,7 @@ export default function HomePage() {
           }));
           setProducts(recommendedProducts);
       } else {
+           setHeadline("Fresh Finds For You"); // Set a fallback headline
            const fallbackProducts = [
             { id: 'JKT-007', name: 'Blue Denim Jacket', category: 'Jackets', reason: "A popular choice to get you started." },
             { id: 'SHOE-045', name: 'Leather Sneakers', category: 'Footwear', reason: "A timeless and versatile bestseller." },
@@ -76,7 +79,7 @@ export default function HomePage() {
       <Header />
       <main className="p-8">
         <section>
-          <h2 className="text-3xl font-bold tracking-tight mb-6">Recommended For You</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-6">{headline}</h2>
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-16 w-16 animate-spin text-primary" />

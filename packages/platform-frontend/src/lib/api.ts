@@ -26,4 +26,14 @@ apiClient.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+export const getRules = async () => {
+  const response = await apiClient.get('/api/v1/rules');
+  return response.data;
+};
+
+export const createRule = async (ruleData: any) => {
+  const response = await apiClient.post('/api/v1/rules', ruleData);
+  return response.data;
+};
+
 export default apiClient;

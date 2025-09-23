@@ -43,3 +43,20 @@ class Token(BaseModel):
     """Schema for the JWT access token."""
     access_token: str
     token_type: str
+
+class BusinessRuleBase(BaseModel):
+    name: str
+    condition_field: str
+    condition_value: str
+    action_type: str
+    action_value: int
+
+class BusinessRuleCreate(BusinessRuleBase):
+    pass
+
+class BusinessRuleResponse(BusinessRuleBase):
+    id: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True

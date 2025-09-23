@@ -11,7 +11,7 @@ import app.core.config
 # --- 3. Import all necessary modules ---
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from app.api.endpoints import track, recommend,auth, api_key
+from app.api.endpoints import track, recommend,auth, api_key, rules
 from app.db.session import get_db_engine
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -43,7 +43,11 @@ app = FastAPI(
     lifespan=lifespan  # <-- This is the crucial line that registers the lifespan
 )
 origins = [
-    "http://localhost:3000", # The address of our Next.js frontend
+    "http://localhost",
+    "http://localhost:3000", # Your platform frontend
+    "http://localhost:3001", # Your demo site
+    "http://127.0.0.1:3000", # Alternative for platform
+    "http://127.0.0.1:3001", # Alternative for demo site
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -57,6 +61,7 @@ app.include_router(track.router, prefix="/api/v1")
 app.include_router(recommend.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1") # Add this line
 app.include_router(api_key.router, prefix="/api/v1")
+app.include_router(rules.router, prefix="/api/v1") # Add this line
 # --- 7. Define the root endpoint ---
 @app.get("/")
 def read_root():
