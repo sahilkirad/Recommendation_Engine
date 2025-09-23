@@ -11,7 +11,7 @@ import app.core.config
 # --- 3. Import all necessary modules ---
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from app.api.endpoints import track, recommend,auth, api_key, rules
+from app.api.endpoints import track, recommend,auth, api_key, rules, catalog
 from app.db.session import get_db_engine
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -62,6 +62,7 @@ app.include_router(recommend.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1") # Add this line
 app.include_router(api_key.router, prefix="/api/v1")
 app.include_router(rules.router, prefix="/api/v1") # Add this line
+app.include_router(catalog.router, prefix="/api/v1")
 # --- 7. Define the root endpoint ---
 @app.get("/")
 def read_root():

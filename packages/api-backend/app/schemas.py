@@ -60,3 +60,15 @@ class BusinessRuleResponse(BusinessRuleBase):
 
     class Config:
         from_attributes = True
+
+class ProductBase(BaseModel):
+    id: str
+    name: str
+    category: str
+
+class ProductCreate(ProductBase):
+    pass
+
+class ProductResponse(ProductBase):
+    class Config:
+        from_attributes = True

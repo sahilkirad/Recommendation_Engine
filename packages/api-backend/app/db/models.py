@@ -7,6 +7,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
+    products = relationship("Product", back_populates="owner", cascade="all, delete-orphan")
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
@@ -40,3 +41,11 @@ class BusinessRule(Base):
 
     # Relationship
     owner = relationship("User", back_populates="business_rules")
+
+class Product(Base):
+    __tablename__ = "products"
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    category = Column(String, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="products")

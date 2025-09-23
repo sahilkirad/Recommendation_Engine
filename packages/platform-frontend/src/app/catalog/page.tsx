@@ -1,41 +1,62 @@
-// File: packages/platform-frontend/src/app/catalog/page.tsx
-'use client'; // This page is interactive, so it's a client component
+'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import apiClient from '@/lib/api';
+import withAuth from '@/components/auth/withAuth';
+import { Loader2 } from 'lucide-react';
 
-// NOTE: This is placeholder data. In a future step, we will
-// dynamically fetch this from our backend API after an upload.
-const sampleCatalog = [
-  { id: 'JKT-007', name: 'Blue Denim Jacket', category: 'Jackets' },
-  { id: 'SHOE-045', name: 'Classic Leather Sneakers', category: 'Footwear' },
-  { id: 'PANT-002', name: 'Slim Fit Chinos', category: 'Pants' },
-  { id: 'TSHIRT-005', name: 'V-Neck Cotton T-Shirt', category: 'T-Shirts' },
-  { id: 'JKT-009', name: 'Black Bomber Jacket', category: 'Jackets' },
-];
+function CatalogPage() {
+  const [catalog, setCatalog] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState('');
 
-export default function CatalogPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [fileName, setFileName] = useState('');
+  const fetchCatalog = async () => {
+    setIsLoading(true);
+    try {
+      const response = await apiClient.get('/api/v1/catalog');
+      setCatalog(response.data);
+    } catch (error) {
+      console.error("Failed to fetch catalog:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const filteredCatalog = sampleCatalog.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchCatalog();
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFileName(event.target.files[0].name);
+    if (event.target.files) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setUploadStatus('Please select a file first.');
+      return;
+    }
+    setUploadStatus('Uploading...');
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      await apiClient.post('/api/v1/catalog/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setUploadStatus('Upload successful!');
+      fetchCatalog(); // Refresh the catalog list
+    } catch (error) {
+      setUploadStatus('Upload failed.');
+      console.error("Upload error:", error);
     }
   };
 
@@ -48,43 +69,39 @@ export default function CatalogPage() {
 
       <div className="grid gap-6">
         <div className="space-y-2">
-          <Label htmlFor="catalog-file">Upload Catalog CSV</Label>
+          <Label htmlFor="catalog-file">Upload New Catalog (CSV)</Label>
           <div className="flex items-center gap-2">
-            <Input id="catalog-file" type="file" className="flex-1" onChange={handleFileChange} />
-            <Button>Upload</Button>
+            <Input id="catalog-file" type="file" accept=".csv" className="flex-1" onChange={handleFileChange} />
+            <Button onClick={handleUpload}>Upload</Button>
           </div>
-          {fileName && <p className="text-sm text-muted-foreground">Selected file: {fileName}</p>}
+          {uploadStatus && <p className="text-sm text-muted-foreground">{uploadStatus}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="search-catalog">Search Catalog</Label>
-          <Input
-            id="search-catalog"
-            placeholder="Search by product name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCatalog.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-mono">{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.category}</TableCell>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin" /></div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {catalog.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-mono">{item.id}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.category}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </DashboardLayout>
   );
 }
+
+export default withAuth(CatalogPage);

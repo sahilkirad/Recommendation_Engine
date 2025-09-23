@@ -3,7 +3,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.schemas import RecommendationRequest
+from app.schemas import RecommendationRequest, ProductResponse
 from app.core.redis_client import redis_client
 from app.core.agent_core import recommendation_chain
 from app.db import models
@@ -12,14 +12,14 @@ from app.api.endpoints.auth import get_db
 
 router = APIRouter()
 
-# For the demo, we'll use a simple in-memory catalog.
-PRODUCT_CATALOG = [
-    {"id": "JKT-007", "name": "Blue Denim Jacket", "category": "Jackets"},
-    {"id": "SHOE-045", "name": "Classic Leather Sneakers", "category": "Footwear"},
-    {"id": "PANT-002", "name": "Slim Fit Chinos", "category": "Pants"},
-    {"id": "TSHIRT-005", "name": "V-Neck Cotton T-Shirt", "category": "T-Shirts"},
-    {"id": "JKT-009", "name": "Black Bomber Jacket", "category": "Jackets"},
-]
+# # For the demo, we'll use a simple in-memory catalog.
+# PRODUCT_CATALOG = [
+#     {"id": "JKT-007", "name": "Blue Denim Jacket", "category": "Jackets"},
+#     {"id": "SHOE-045", "name": "Classic Leather Sneakers", "category": "Footwear"},
+#     {"id": "PANT-002", "name": "Slim Fit Chinos", "category": "Pants"},
+#     {"id": "TSHIRT-005", "name": "V-Neck Cotton T-Shirt", "category": "T-Shirts"},
+#     {"id": "JKT-009", "name": "Black Bomber Jacket", "category": "Jackets"},
+# ]
 
 @router.post("/recommend")
 async def get_recommendations(
@@ -28,8 +28,17 @@ async def get_recommendations(
     api_key: models.ApiKey = Depends(get_api_key)
 ):
     """
-    Fetches session history and uses the AI agent to generate recommendations.
+    Fetches session history and uses the AI agent and the dynamic, user-specific
+    product catalog from the database to generate recommendations.
     """
+    # --- 1. FETCH THE DYNAMIC CATALOG FROM THE DATABASE ---
+    user_catalog = db.query(models.Product).filter(models.Product.user_id == api_key.user_id).all()
+    if not user_catalog:
+        raise HTTPException(status_code=404, detail="No product catalog found. Please upload a catalog.")
+
+    # Convert SQLAlchemy objects to dictionaries for the AI prompt
+    product_catalog_dict = [ProductResponse.from_orm(p).model_dump() for p in user_catalog]
+    # --------------------------------------------------------
     redis_key = f"session:{request.visitor_id}"
     session_history_raw = redis_client.lrange(redis_key, 0, -1)
 
@@ -38,10 +47,10 @@ async def get_recommendations(
         print("❄️ New user detected. Providing static fallback recommendations.")
         # Return a simple, static list for new users
         fallback_recs = {
-            "headline": "Popular This Week",
+              "headline": "Popular This Week",
             "recommendations": [
-                {"item_id": "SHOE-045", "reason": "A timeless and versatile bestseller."},
-                {"item_id": "JKT-007", "reason": "A popular choice to get you started."}
+                {"item_id": p['id'], "reason": "A popular choice to get you started."}
+                for p in product_catalog_dict[:4]
             ]
         }
         return fallback_recs
@@ -58,10 +67,10 @@ async def get_recommendations(
     if not rules:
         rules_str = "No active business rules."
 
-    # Invoke the AI agent with all necessary context
+    # Invoke the AI agent with the DYNAMIC catalog
     ai_response_content = recommendation_chain.invoke({
         "session_history": "\n".join(session_history_raw),
-        "product_catalog": json.dumps(PRODUCT_CATALOG),
+        "product_catalog": json.dumps(product_catalog_dict),
         "business_rules": rules_str
     }).content
     
