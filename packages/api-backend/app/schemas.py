@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 
 class TrackingEvent(BaseModel):
@@ -29,7 +29,7 @@ class RecommendationRequest(BaseModel):
 class UserCreate(BaseModel):
     """Schema for creating a new user."""
     email: str
-    password: str
+    password: str =  Field(..., min_length=8, max_length=72)
 
 class UserResponse(BaseModel):
     """Schema for returning user information (without the password)."""
@@ -37,7 +37,7 @@ class UserResponse(BaseModel):
     email: str
 
     class Config:
-        orm_mode = True # This allows the model to be created from a database object
+        from_attributes = True # Use from_attributes instead of orm_mode
 
 class Token(BaseModel):
     """Schema for the JWT access token."""
@@ -71,4 +71,4 @@ class ProductCreate(ProductBase):
 
 class ProductResponse(ProductBase):
     class Config:
-        from_attributes = True
+        from_attributes = True # Use from_attributes instead of orm_mode

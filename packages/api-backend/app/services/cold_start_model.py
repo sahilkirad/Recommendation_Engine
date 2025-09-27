@@ -1,23 +1,17 @@
 # File: packages/api-backend/app/services/cold_start_model.py
-import numpy as np
-
+from sentence_transformers import SentenceTransformer
 
 class ColdStartModel:
-    def __init__(self, catalog: list):
-        self.catalog = catalog
-        self.popular_items = self._train_and_get_popular()
+    def __init__(self):
+        print("💡 Initializing sentence-transformer model for potential use...")
+        # This model is loaded once on startup for efficiency.
+        # self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        print("✅ Cold start model handler ready.")
 
-    def _train_and_get_popular(self):
-        # For a demo, we'll just find the most frequent items.
-        # In a real app, this would be a more complex model training process.
-        print("💡 Training cold start model...")
-        # Let's pretend these are the most popular items based on historical data
-        popular_ids = ["SHOE-045", "JKT-007", "TSHIRT-005", "PANT-002"]
-        print("✅ Cold start model ready.")
-        return popular_ids
-
-    def get_recommendations(self, num_recs: int = 4):
-        """Returns a list of the most popular items for new users."""
-        return self.popular_items[:num_recs]
-
-# We will create an instance of this model when our app starts.
+    def get_recommendations(self, catalog: list, num_recs: int = 4):
+        """
+        For a true cold start (zero user history), the best strategy is to
+        recommend the most popular or featured items. For our demo, we'll
+        simply return the first few items from the developer's uploaded catalog.
+        """
+        return catalog[:num_recs]

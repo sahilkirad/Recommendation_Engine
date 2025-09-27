@@ -50,6 +50,14 @@ def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2Passw
     """
     Logs in a user and returns a JWT access token.
     """
+    # Manually check the password length before doing anything else
+    if len(form_data.password) > 72:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Password cannot be longer than 72 characters."
+        )
+    # -----------------------
+
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
     
     # Check if user exists and password is correct

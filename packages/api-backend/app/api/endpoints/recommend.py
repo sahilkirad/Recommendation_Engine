@@ -9,7 +9,7 @@ from app.core.agent_core import recommendation_chain
 from app.db import models
 from app.api.dependencies import get_api_key
 from app.api.endpoints.auth import get_db
-
+from app.services.cold_start_model import ColdStartModel
 router = APIRouter()
 
 # # For the demo, we'll use a simple in-memory catalog.
@@ -20,7 +20,7 @@ router = APIRouter()
 #     {"id": "TSHIRT-005", "name": "V-Neck Cotton T-Shirt", "category": "T-Shirts"},
 #     {"id": "JKT-009", "name": "Black Bomber Jacket", "category": "Jackets"},
 # ]
-
+cold_start_model = ColdStartModel()
 @router.post("/recommend")
 async def get_recommendations(
     request: RecommendationRequest,
@@ -45,15 +45,17 @@ async def get_recommendations(
     # --- UPDATED COLD START LOGIC ---
     if not session_history_raw:
         print("❄️ New user detected. Providing static fallback recommendations.")
+        # Get recommendations from the user's own catalog
+        recs = cold_start_model.get_recommendations(catalog=product_catalog_dict)
         # Return a simple, static list for new users
-        fallback_recs = {
-              "headline": "Popular This Week",
+        response_data = {
+            "headline": "Popular This Week",
             "recommendations": [
-                {"item_id": p['id'], "reason": "A popular choice to get you started."}
-                for p in product_catalog_dict[:4]
+                {"item_id": item['id'], "reason": "A popular choice to get you started."}
+                for item in recs
             ]
         }
-        return fallback_recs
+        return response_data
     # --- END OF UPDATE ---
 
     print("🧠 Known user. Using AI agent for reasoning.")

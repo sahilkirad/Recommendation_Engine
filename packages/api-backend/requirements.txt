@@ -10,3 +10,7 @@ sqlalchemy
 psycopg2-binary
 python-jose[cryptography]
 langchain-google-genai
+sentence-transformers
+scikit-learn
+pandas
+argon2-cffi
