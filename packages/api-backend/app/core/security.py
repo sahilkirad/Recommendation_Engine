@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from app.db import models
 from app.db.session import SessionLocal
-
+import os
 # --- Hashing (already exists) ---
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
@@ -25,7 +25,7 @@ def generate_api_key() -> str:
 
 # --- JWT Token Creation (NEW) ---
 # These should be in your .env file in a real production app
-SECRET_KEY = "your-super-secret-key-for-jwt" # Replace with a long, random string
+SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
