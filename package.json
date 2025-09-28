@@ -6,6 +6,6 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=packages/platform-frontend"
+    "dev": "echo \"Run dev scripts from individual packages\""
   }
 }
